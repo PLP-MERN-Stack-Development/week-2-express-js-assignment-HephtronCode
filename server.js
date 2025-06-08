@@ -1,16 +1,42 @@
 // server.js - Starter Express server for Week 2 assignment
-
+require('dotenv').config();
 // Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
+const logger = require('./middleware/logger');
+
+// Import custom error handler
+const errorHandler = require('./middleware/errorHandler');
+
+// import router
+const productRoutes = require('./routes/productRoutes');
+
 
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/products-api';
+
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((error) => {
+  console.error('Error connecting to MongoDB:', error);
+  process.exit(1);
+}
+);
 
 // Middleware setup
 app.use(bodyParser.json());
+app.use('/api/products', productRoutes);
+app.use(logger); // Custom request logging middleware
+app.use(errorHandler); // Custom error handling middleware
+
 
 // Sample in-memory products database
 let products = [
@@ -68,4 +94,4 @@ app.listen(PORT, () => {
 });
 
 // Export the app for testing purposes
-module.exports = app; 
+module.exports = app;
